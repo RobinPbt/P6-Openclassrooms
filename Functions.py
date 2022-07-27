@@ -5,7 +5,6 @@ from nltk.corpus import words
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 
-
 import tensorflow as tf
 # import tensorflow_hub as hub
 import tensorflow.keras
@@ -22,7 +21,6 @@ import os
 import transformers
 from transformers import *
 
-
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -33,6 +31,8 @@ import logging
 
 from sklearn import cluster, metrics
 from sklearn import manifold, decomposition
+
+from PIL import Image
 
 
 # ----------------------------------------------- Text processing functions --------------------------------------------
@@ -235,3 +235,26 @@ def feature_USE_fct(sentences, b_size, embed):
 
     time2 = np.round(time.time() - time1,0)
     return features
+
+
+# ----------------------------------------------- Image recognition functions --------------------------------------------
+
+def display_img(img):
+    """Displays a loaded image in a (6,6) figure and without axis"""
+    
+    plt.figure(figsize=(6,6))
+    plt.axis('off')
+    plt.imshow(img)
+    plt.show()
+    
+    
+def build_histogram(kmeans, des, image_num):
+    """Create a bag-of-image with a trained kmeans, a array of descriptors of an image"""
+    
+    res = kmeans.predict(des)
+    hist = np.zeros(len(kmeans.cluster_centers_))
+    nb_des=len(des)
+    if nb_des==0 : print("histogram image problem  : ", image_num)
+    for i in res:
+        hist[i] += 1.0/nb_des
+    return hist
