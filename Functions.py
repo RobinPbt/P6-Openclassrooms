@@ -6,7 +6,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 
 import tensorflow as tf
-# import tensorflow_hub as hub
+import tensorflow_hub as hub
 import tensorflow.keras
 from tensorflow.keras import backend as K
 
@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import pickle
 import time
 import logging
+import spacy
 
 from sklearn import cluster, metrics
 from sklearn import manifold, decomposition
@@ -46,7 +47,8 @@ def tokenizer_fct(sentence):
     return word_tokens
 
 
-def process_text(doc, rejoin=False, list_rare_words=None, min_len_word=3, force_is_alpha=True, lem_or_stem=None, eng_words=None):
+def process_text(doc, rejoin=False, apply_stopwords=True, list_rare_words=None, min_len_word=3, force_is_alpha=True, lem_or_stem=None, eng_words=None):
+    """Text processing with nltk"""
     
     # List unique words
     if not list_rare_words:
@@ -60,7 +62,10 @@ def process_text(doc, rejoin=False, list_rare_words=None, min_len_word=3, force_
     raw_token_list = tokenizer.tokenize(doc)
     
     # classic stopwords
-    stop_words = list(set(stopwords.words('english'))) + ['[', ']', ',', '.', ':', '?', '(', ')']
+    if apply_stopwords:
+        stop_words = list(set(stopwords.words('english'))) + ['[', ']', ',', '.', ':', '?', '(', ')']
+    else:
+        stop_words = []
     cleaned_token_list = [w for w in raw_token_list if w not in stop_words]
     
     # deleting rare tokens
@@ -96,6 +101,50 @@ def process_text(doc, rejoin=False, list_rare_words=None, min_len_word=3, force_
         return " ".join(eng_text)
     else:
         return eng_text
+    
+    
+def spacy_process_text(doc, model="en_core_web_sm", rejoin=False, apply_stopwords=True, list_rare_words=None, min_len_word=3, force_is_alpha=True):
+    """Text processing with spacy"""
+    
+    nlp = spacy.load(model)
+    
+    # List unique words
+    if not list_rare_words:
+        list_rare_words = []
+    
+    # Lower
+    doc = doc.lower().strip()
+    
+    # Remove stopwords
+    if apply_stopwords:
+        stop_words = nlp.Defaults.stop_words
+    else:
+        stop_words = []
+    cleaned_doc = [w for w in doc.split() if w not in stop_words]
+    
+    # deleting rare tokens
+    non_rare_doc = " ".join([w for w in cleaned_doc if w not in list_rare_words])
+    
+    # Spacy processing
+    processed_doc = nlp(non_rare_doc)
+    
+    # deleting word with too low lenght
+    more_than_N = [w for w in processed_doc if len(w) >= min_len_word]
+    
+    # only alpha characters
+    if force_is_alpha:
+        alpha_tokens = [w for w in more_than_N if w.is_alpha]
+    else:
+        alpha_tokens = more_than_N
+        
+    # Lemmatize
+    trans_text = [w.lemma_ for w in alpha_tokens]
+    
+    # Manage return type
+    if rejoin:
+        return " ".join(trans_text)
+    else:
+        return trans_text
     
 
 # ----------------------------------------------- Text visualization functions --------------------------------------------
