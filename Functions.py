@@ -106,41 +106,35 @@ def process_text(doc, rejoin=False, apply_stopwords=True, list_rare_words=None, 
 def spacy_process_text(doc, model="en_core_web_sm", rejoin=False, apply_stopwords=True, list_rare_words=None, min_len_word=3, force_is_alpha=True):
     """Text processing with spacy"""
     
+    # Spacy processing
     nlp = spacy.load(model)
-    
-    # List unique words
-    if not list_rare_words:
-        list_rare_words = []
-    
-    # Lower
-    doc = doc.lower().strip()
-    
-    # Remove stopwords
-    if apply_stopwords:
-        stop_words = nlp.Defaults.stop_words
-    else:
-        stop_words = []
-    cleaned_doc = [w for w in doc.split() if w not in stop_words]
+    processed_doc = nlp(doc)
     
     # deleting rare tokens
-    non_rare_doc = " ".join([w for w in cleaned_doc if w not in list_rare_words])
+    if not list_rare_words:
+        list_rare_words = []
+
+    non_rare_tokens = [token for token in processed_doc if token.text not in list_rare_words]
     
-    # Spacy processing
-    processed_doc = nlp(non_rare_doc)
+    # remove stopwords and punctuation
+    if apply_stopwords:
+        cleaned_token_list = [token for token in non_rare_tokens if not (token.is_stop or token.is_punct)]
+    else:
+        cleaned_token_list = non_rare_tokens
     
-    # deleting word with too low lenght
-    more_than_N = [w for w in processed_doc if len(w) >= min_len_word]
+    # delete word with too low lenght
+    more_than_N = [token for token in cleaned_token_list if len(token) >= min_len_word]
     
     # only alpha characters
     if force_is_alpha:
-        alpha_tokens = [w for w in more_than_N if w.is_alpha]
+        alpha_tokens = [token for token in more_than_N if token.is_alpha]
     else:
         alpha_tokens = more_than_N
         
-    # Lemmatize
-    trans_text = [w.lemma_ for w in alpha_tokens]
+    # lemmatize
+    trans_text = [token.lemma_.lower() for token in alpha_tokens]
     
-    # Manage return type
+    # manage return type
     if rejoin:
         return " ".join(trans_text)
     else:
