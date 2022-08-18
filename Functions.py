@@ -40,7 +40,7 @@ from PIL import Image
 
 
 def tokenizer_fct(sentence):
-    """Tokenize a given sentence"""
+    """Tokenize a given sentence with NLTK"""
     
     sentence_clean = sentence.replace('-', ' ').replace('+', ' ').replace('/', ' ').replace('#', ' ')
     word_tokens = word_tokenize(sentence_clean)
@@ -48,7 +48,7 @@ def tokenizer_fct(sentence):
 
 
 def process_text(doc, rejoin=False, apply_stopwords=True, list_rare_words=None, min_len_word=3, force_is_alpha=True, lem_or_stem=None, eng_words=None):
-    """Text processing with nltk"""
+    """Text processing with NLTK"""
     
     # List unique words
     if not list_rare_words:
@@ -173,12 +173,12 @@ def TSNE_visu_fct(X_tsne, y_cat_num, labels, ARI, l_cat):
     ax = fig.add_subplot(121)
     scatter = ax.scatter(X_tsne[:,0],X_tsne[:,1], c=y_cat_num, cmap='Set1')
     ax.legend(handles=scatter.legend_elements()[0], labels=l_cat, loc="best", title="Categorie")
-    plt.title('Représentation des tweets par catégories réelles')
+    plt.title('T-SNE with actual classes')
     
     ax = fig.add_subplot(122)
     scatter = ax.scatter(X_tsne[:,0],X_tsne[:,1], c=labels, cmap='Set1')
     ax.legend(handles=scatter.legend_elements()[0], labels=set(labels), loc="best", title="Clusters")
-    plt.title('Représentation des tweets par clusters')
+    plt.title('T-SNE with clusters')
     
     plt.show()
     print("ARI : ", ARI)
@@ -292,7 +292,7 @@ def display_img(img):
     
     
 def build_histogram(kmeans, des, image_num):
-    """Create a bag-of-image with a trained kmeans, a array of descriptors of an image"""
+    """Create a bag-of-visual-words with a trained kmeans, a array of descriptors of an image"""
     
     res = kmeans.predict(des)
     hist = np.zeros(len(kmeans.cluster_centers_))
